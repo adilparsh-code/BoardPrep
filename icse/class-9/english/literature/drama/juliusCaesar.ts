@@ -1,0 +1,81 @@
+import type { LiteratureModule } from "../../types";
+
+export const juliusCaesar: LiteratureModule = {
+  id: "icse-9-eng-lit-drama-01",
+  title: "Julius Caesar (Acts I & II)",
+  author: "William Shakespeare",
+  genre: "drama",
+  difficulty: "hard",
+  learningObjective: "Understand the political tension, Cassius's manipulation, and Brutus's moral conflict.",
+  background: {
+    author: "William Shakespeare (1564-1616). Written around 1599.",
+    context: "Based on historical events of 44 BC Rome.",
+    setting: "Rome, 44 BC.",
+  },
+  vocabulary: [
+    { word: "Tribune", meaning: "Roman official protecting common people" },
+    { word: "Plebeian", meaning: "Common person" },
+    { word: "Patrician", meaning: "Aristocratic class" },
+    { word: "Soothsayer", meaning: "Person predicting the future" },
+    { word: "Soliloquy", meaning: "Speech alone on stage" },
+    { word: "Dramatic irony", meaning: "Audience knows what character does not" },
+  ],
+  overview: "Caesar returns to Rome triumphant. Cassius manipulates Brutus into joining a conspiracy against Caesar. Brutus, torn between love for Caesar and love for Rome, decides Caesar must die. The conspirators plan to kill him at the Capitol.",
+  sections: [
+    { id: "act1s1", title: "Act I, Scene 1: Street in Rome", whatHappens: "Tribunes scold commoners for celebrating Caesar.", whatItMeans: "Political tension established.", whyItMatters: "Shows public fickleness.", keyDetails: ["Cobbler's puns"] },
+    { id: "act1s2", title: "Act I, Scene 2: Public Square", whatHappens: "Soothsayer warns Caesar; Cassius begins manipulating Brutus.", whatItMeans: "Conspiracy begins.", whyItMatters: "Central political scene.", keyDetails: ["'Beware the Ides of March'", "Cassius's flattery"] },
+    { id: "act1s3", title: "Act I, Scene 3: Storm", whatHappens: "Omens in Rome; Cassius recruits Casca.", whatItMeans: "Supernatural enters.", whyItMatters: "Atmosphere of disorder.", keyDetails: ["Lion in Capitol", "Men on fire"] },
+    { id: "act2s1", title: "Act II, Scene 1: Brutus's Orchard", whatHappens: "Brutus soliloquy decides Caesar must die; conspirators meet.", whatItMeans: "Moral turning point.", whyItMatters: "Establishes Brutus as tragic hero.", keyDetails: ["'It must be by his death'", "Portia's wound"] },
+    { id: "act2s2", title: "Act II, Scene 2: Caesar's House", whatHappens: "Calpurnia's dream; Decius reinterprets; Caesar goes.", whatItMeans: "Vanity over warning.", whyItMatters: "Establishes Caesar's fatal flaw.", keyDetails: ["Statue spouting blood"] },
+    { id: "act2s3", title: "Act II, Scene 3: Artemidorus", whatHappens: "Artemidorus waits with warning letter.", whatItMeans: "Tension.", whyItMatters: "Foreshadows death.", keyDetails: ["Warning letter"] },
+    { id: "act2s4", title: "Act II, Scene 4: Portia's Anxiety", whatHappens: "Portia is agitated; sends Lucius to Capitol.", whatItMeans: "Private cost of public action.", whyItMatters: "Humanises conspiracy.", keyDetails: ["Portia's fear"] },
+  ],
+  characters: [
+    { name: "Marcus Brutus", introduction: "Respected senator, Caesar's friend.", personality: "Noble, idealistic, conflicted, honourable.", motivations: "Love for Rome.", importantActions: ["Decides Caesar must die", "Refuses oath"], development: "From conflicted to committed conspirator.", evidence: ["'It must be by his death'"], examAngles: ["Is Brutus a tragic hero?", "Is his decision justified?"] },
+    { name: "Caius Cassius", introduction: "Senator and general; instigator.", personality: "Manipulative, jealous, observant.", motivations: "Personal jealousy + belief in Caesar's tyranny.", importantActions: ["Manipulates Brutus", "Recruits Casca"], development: "Static manipulator.", evidence: ["'He doth bestride the narrow world like a Colossus'"], examAngles: ["Villain or patriot?", "How does he manipulate Brutus?"] },
+    { name: "Julius Caesar", introduction: "Rome's most powerful man.", personality: "Proud, superstitious, vulnerable, vain.", motivations: "Consolidate power.", importantActions: ["Dismisses soothsayer", "Refuses crown"], development: "Private weaknesses revealed in Act II.", evidence: ["'Cowards die many times before their deaths'"], examAngles: ["Is Caesar ambitious?", "Is he a tyrant?"] },
+    { name: "Portia", introduction: "Brutus's wife.", personality: "Strong, intelligent, loyal.", motivations: "Love for Brutus.", importantActions: ["Shows self-inflicted wound"], development: "Static.", evidence: ["'Think you I am no stronger than my sex'"], examAngles: ["How does Shakespeare present Portia?"] },
+    { name: "Calpurnia", introduction: "Caesar's wife.", personality: "Loving, superstitious, perceptive.", motivations: "Protecting Caesar.", importantActions: ["Warns of dream"], development: "Static.", evidence: ["'Alas, my lord, your wisdom is consumed in confidence'"], examAngles: ["Compare to Portia."] },
+  ],
+  themes: [
+    { theme: "Ambition and Power", evidence: "Cassius describes Caesar as 'Colossus'.", explanation: "Desire for power corrupts.", significance: "Central question of play." },
+    { theme: "Honour and Patriotism", evidence: "Brutus says 'not that I loved Caesar less, but that I loved Rome more'.", explanation: "Honour as framework for action.", significance: "Questions whether honour is reliable." },
+    { theme: "Fate vs Free Will", evidence: "Omens and Cassius's claim 'men at some time are masters of their fates'.", explanation: "Both possibilities presented.", significance: "Central ambiguity." },
+    { theme: "Friendship and Betrayal", evidence: "Brutus betrays Caesar.", explanation: "Duty vs friendship.", significance: "Examines loyalty." },
+    { theme: "Public vs Private Selves", evidence: "Caesar in public vs private.", explanation: "Public personas mask private weaknesses.", significance: "Questions authenticity." },
+  ],
+  literaryDevices: [
+    { device: "Soliloquy", definition: "Speech alone on stage.", example: "Brutus in Act II, Scene 1.", effect: "Reveals inner thought.", whyUsed: "Sympathy for Brutus." },
+    { device: "Dramatic Irony", definition: "Audience knows what character doesn't.", example: "Audience knows of conspiracy.", effect: "Tension and dread.", whyUsed: "Heightens tragedy." },
+    { device: "Foreshadowing", definition: "Hints of future events.", example: "Soothsayer, Calpurnia's dream.", effect: "Inevitability.", whyUsed: "Builds dread." },
+    { device: "Metaphor", definition: "Comparison without 'like'/'as'.", example: "Caesar 'doth bestride the narrow world like a Colossus'.", effect: "Vivid image of power.", whyUsed: "Characterise Caesar." },
+  ],
+  extracts: [
+    { id: "e1", context: "Act I, Scene 2.", speaker: "Soothsayer", situation: "Soothsayer warns Caesar about the Ides of March.", meaning: "First foreshadowing.", significance: "Caesar dismisses warning.", likelyQuestions: [{ question: "How does Caesar respond?", answer: "He dismisses the soothsayer as a 'dreamer'.", explanation: "Shows arrogance." }] },
+    { id: "e2", context: "Act I, Scene 2.", speaker: "Cassius to Brutus", situation: "Cassius begins manipulating Brutus.", meaning: "Seeds of conspiracy.", significance: "Central political manipulation.", likelyQuestions: [{ question: "What arguments does Cassius use?", answer: "Flattery, belittling Caesar, appealing to Brutus's family history.", explanation: "Multiple strategies." }] },
+    { id: "e3", context: "Act II, Scene 1.", speaker: "Brutus", situation: "Soliloquy in orchard.", meaning: "Decides Caesar must die.", significance: "Moral turning point.", likelyQuestions: [{ question: "Why does Brutus decide Caesar must die?", answer: "Not for what Caesar has done, but for what he might become.", explanation: "Pre-emptive reasoning." }] },
+  ],
+  thinkingQuestions: [
+    "Why does Shakespeare open with commoners?",
+    "Is Brutus a tragic hero?",
+    "Compare Brutus and Cassius.",
+    "How does the play explore fate vs free will?",
+  ],
+  examQuestions: [
+    { type: "short", marks: 2, question: "What warning does the Soothsayer give?", modelAnswerGuidance: ["'Beware the Ides of March'."] },
+    { type: "analytical", marks: 6, question: "How does Shakespeare present Brutus as a tragic hero?", modelAnswerGuidance: ["Define tragic hero.", "Cite noble qualities.", "Cite fatal flaw.", "Cite soliloquy."] },
+    { type: "extract-based", marks: 6, question: "Analyse Brutus's soliloquy in Act II, Scene 1.", modelAnswerGuidance: ["Context.", "Meaning.", "Significance."] },
+  ],
+  commonMistakes: [
+    "Calling Brutus 'evil'.",
+    "Ignoring Cassius's manipulation.",
+    "Simplifying Caesar as good/bad.",
+    "Confusing Portia and Calpurnia.",
+  ],
+  quickRevision: {
+    keyPoints: ["Brutus = tragic hero.", "Cassius = manipulator.", "Caesar = powerful but vulnerable.", "Omens + dreams create tension.", "Fate vs free will central."],
+    keyVocabulary: ["Soliloquy", "Dramatic irony", "Foreshadowing", "Tragic hero"],
+    examPoints: ["Identify speaker, context, significance.", "Use PEE."],
+    selfTest: ["Who warns Caesar?", "Why does Brutus join?", "What is Brutus's flaw?"],
+  },
+};
