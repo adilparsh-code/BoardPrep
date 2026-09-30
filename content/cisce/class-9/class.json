@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "id": "cisce-class-9",
+  "board": "cisce",
+  "slug": "class-9",
+  "label": "Class IX",
+  "subjects": [
+    {
+      "slug": "english",
+      "title": "English",
+      "description": "English Language and Literature in English: summaries, analysis, vocabulary and practice questions with model answers."
+    }
+  ]
+}

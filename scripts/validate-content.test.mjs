@@ -1,0 +1,106 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { validateContent, MAX_EXTRACT_WORDS } from "./validate-content.mjs";
+
+const realRoot = path.join(process.cwd(), "content");
+
+function cloneContent() {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "bp-content-"));
+  fs.cpSync(realRoot, dir, { recursive: true });
+  return dir;
+}
+const subjDir = (d) => path.join(d, "cisce", "class-9", "english");
+const readJ = (f) => JSON.parse(fs.readFileSync(f, "utf8"));
+const writeJ = (f, v) => fs.writeFileSync(f, JSON.stringify(v, null, 2));
+const has = (r, re) => r.errors.some((e) => re.test(e));
+
+test("real content passes with no errors", () => {
+  const r = validateContent(realRoot);
+  assert.deepEqual(r.errors, []);
+  assert.ok(r.stats.chapters >= 15);
+});
+
+function mutateChapter(fn) {
+  const d = cloneContent();
+  const f = path.join(subjDir(d), "literature/prose/the-pedestrian.json");
+  const ch = readJ(f);
+  fn(ch);
+  writeJ(f, ch);
+  return validateContent(d);
+}
+
+test("empty summary is rejected", () => assert.ok(has(mutateChapter((c) => { c.overview.intro = " "; }), /empty overview/)));
+test("missing answer is rejected", () => assert.ok(has(mutateChapter((c) => { c.questions[0].answer = ""; }), /missing answer/)));
+test("invalid question type is rejected", () => assert.ok(has(mutateChapter((c) => { c.questions[0].type = "essay"; }), /invalid question type/)));
+test("duplicate question ids are rejected", () => assert.ok(has(mutateChapter((c) => { c.questions[1].id = c.questions[0].id; }), /duplicate question id/)));
+test("duplicate question text is rejected", () => assert.ok(has(mutateChapter((c) => { c.questions[1].prompt = c.questions[0].prompt; c.questions[1].type = "short"; delete c.questions[1].options; delete c.questions[1].correctIndex; }), /duplicate question/)));
+test("invalid id is rejected", () => assert.ok(has(mutateChapter((c) => { c.questions[0].id = "Bad ID"; }), /invalid id/)));
+test("mcq correctIndex out of range is rejected", () => assert.ok(has(mutateChapter((c) => { c.questions[0].correctIndex = 9; }), /correctIndex/)));
+test("empty learn section is rejected", () => assert.ok(has(mutateChapter((c) => { c.learn[0].blocks = []; }), /empty section/)));
+test("HTML in content is rejected", () => assert.ok(has(mutateChapter((c) => { c.keyPoints[0] = "Use <script>alert(1)</script>"; }), /markup/)));
+test("math-style less-than is allowed", () => assert.ok(!has(mutateChapter((c) => { c.keyPoints[0] = "If x < y then y is larger."; }), /markup/)));
+test("over-long extract is rejected (copyright guard)", () =>
+  assert.ok(has(mutateChapter((c) => { c.questions[0].extract = Array(MAX_EXTRACT_WORDS + 5).fill("word").join(" "); }), /copyright guard/)));
+test("literature without third-party attribution is rejected", () => assert.ok(has(mutateChapter((c) => { c.sourceNote.thirdParty = ""; }), /thirdParty/)));
+test("chapter id must match manifest", () => assert.ok(has(mutateChapter((c) => { c.id = "cisce-9-eng-lit-other"; }), /does not match manifest/)));
+
+test("broken reference and orphan file are rejected", () => {
+  const d = cloneContent();
+  const sf = path.join(subjDir(d), "subject.json");
+  const s = readJ(sf);
+  s.sections[0].groups[0].chapters[0].file = "language/grammar/missing.json";
+  writeJ(sf, s);
+  fs.writeFileSync(path.join(subjDir(d), "language/grammar/stray.json"), "{}");
+  const r = validateContent(d);
+  assert.ok(has(r, /broken reference/));
+  assert.ok(has(r, /orphan chapter file/));
+});
+
+test("duplicate chapter id and wrong section kind are rejected", () => {
+  const d = cloneContent();
+  const sf = path.join(subjDir(d), "subject.json");
+  const s = readJ(sf);
+  s.sections[0].groups[0].chapters[1].id = s.sections[0].groups[0].chapters[0].id;
+  s.sections[0].groups[0].chapters[2].kind = "poetry";
+  writeJ(sf, s);
+  const r = validateContent(d);
+  assert.ok(has(r, /duplicate chapter id/));
+  assert.ok(has(r, /does not belong in a "language" section/));
+});
+
+test("class/subject mapping mismatch and missing chapter name are rejected", () => {
+  const d = cloneContent();
+  const sf = path.join(subjDir(d), "subject.json");
+  const s = readJ(sf);
+  s.classSlug = "class-10";
+  s.sections[0].groups[0].chapters[0].title = "";
+  writeJ(sf, s);
+  const r = validateContent(d);
+  assert.ok(has(r, /classSlug/));
+  assert.ok(has(r, /missing chapter name/));
+});
+
+test("planned chapter must not carry a file; unknown examYear rejected", () => {
+  const d = cloneContent();
+  const sf = path.join(subjDir(d), "subject.json");
+  const s = readJ(sf);
+  const planned = s.sections[1].groups[1].chapters.find((c) => c.status === "planned");
+  planned.file = "literature/prose/x.json";
+  planned.examYears = [1999];
+  writeJ(sf, s);
+  const r = validateContent(d);
+  assert.ok(has(r, /planned chapters must not have a file/));
+  assert.ok(has(r, /examYear 1999/));
+});
+
+test("empty section is rejected", () => {
+  const d = cloneContent();
+  const sf = path.join(subjDir(d), "subject.json");
+  const s = readJ(sf);
+  s.sections[0].groups = [];
+  writeJ(sf, s);
+  assert.ok(has(validateContent(d), /empty section/));
+});

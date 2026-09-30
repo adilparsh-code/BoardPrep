@@ -39,3 +39,13 @@ The first content data file is `data/icseEnglish.ts`. It should eventually be sp
 CISCE syllabus information must be verified against the current official CISCE documents before publishing or updating curriculum claims. The starter uses the ICSE Examination Year 2027 English literature baseline.
 
 BoardPrep is an independent educational platform and is not affiliated with CISCE or CBSE.
+
+## CISCE Class IX English module
+
+Live at `/cisce/class-9/english`. Content lives in `content/` (see `docs/CONTENT_GUIDE.md`).
+
+```bash
+npm run check   # content validation, typecheck, lint, tests, build, route audit
+```
+
+Review of the legacy starter content: `docs/LEGACY_CONTENT_REVIEW.md`.
