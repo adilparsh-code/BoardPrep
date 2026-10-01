@@ -9,11 +9,12 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "validate:content": "node scripts/validate-content.mjs",
+    "qa:content": "node scripts/qa-content-language.mjs",
     "test": "node --test scripts/*.test.mjs",
     "audit:routes": "node scripts/audit-routes.mjs",
     "verify:math": "node scripts/verify-math.mjs",
     "smoke": "node scripts/smoke-math.mjs",
-    "check": "npm run validate:content && npm run typecheck && npm run lint && npm test && npm run build && npm run audit:routes && npm run verify:math && npm run smoke"
+    "check": "npm run validate:content && npm run qa:content && npm run typecheck && npm run lint && npm test && npm run build && npm run audit:routes && npm run verify:math && npm run smoke"
   },
   "dependencies": {
     "next": "15.5.0",
