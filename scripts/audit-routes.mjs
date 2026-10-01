@@ -27,20 +27,103 @@ function freePort() {
   });
 }
 
+/**
+ * Every route the content implies, across ALL boards. Boards are discovered
+ * from the content tree, so adding a board needs no change here.
+ */
 function expectedRoutes() {
-  const routes = new Set(["/", "/about", "/cisce"]);
-  const board = j("cisce", "board.json");
-  for (const c of board.classes) {
-    routes.add(`/cisce/${c.slug}`);
-    const cls = j("cisce", c.slug, "class.json");
-    for (const s of cls.subjects) {
-      routes.add(`/cisce/${c.slug}/${s.slug}`);
-      const subj = j("cisce", c.slug, s.slug, "subject.json");
-      for (const sec of subj.sections) for (const g of sec.groups) for (const ch of g.chapters)
-        if (ch.status === "published") routes.add(`/cisce/${c.slug}/${s.slug}/${ch.slug}`);
+  const routes = new Set(["/", "/about", "/boards"]);
+  const contentRoot = path.join(root, "content");
+  const boards = fs.readdirSync(contentRoot, { withFileTypes: true })
+    .filter((d) => d.isDirectory() && fs.existsSync(path.join(contentRoot, d.name, "board.json")))
+    .map((d) => d.name);
+  for (const boardSlug of boards) {
+    routes.add(`/${boardSlug}`);
+    const board = j(boardSlug, "board.json");
+    for (const c of board.classes) {
+      routes.add(`/${boardSlug}/${c.slug}`);
+      const cls = j(boardSlug, c.slug, "class.json");
+      for (const s of cls.subjects) {
+        routes.add(`/${boardSlug}/${c.slug}/${s.slug}`);
+        const subj = j(boardSlug, c.slug, s.slug, "subject.json");
+        for (const sec of subj.sections) for (const g of sec.groups) for (const ch of g.chapters)
+          if (ch.status === "published") routes.add(`/${boardSlug}/${c.slug}/${s.slug}/${ch.slug}`);
+      }
     }
   }
   return routes;
+}
+
+/** A representative sample of URLs that must 404 (no published chapter, no such slug). */
+function notFoundProbes() {
+  const probes = ["/this-board-does-not-exist", "/icse/class-99", "/icse/class-9/no-such-subject",
+    "/icse/class-9/english/does-not-exist", "/icse/class-9/english/with-the-photographer"];
+  for (const boardSlug of ["isc", "cbse"]) {
+    probes.push(`/${boardSlug}/class-99`, `/${boardSlug}/class-11/no-such-subject`);
+  }
+  return probes;
+}
+
+/**
+ * Legacy redirect rules, read from next.config.ts so there is a single source
+ * of truth. Each rule is exercised with a real published path substituted for
+ * the `:path*` wildcard, and the redirect must resolve to 200 at the
+ * destination the config declares.
+ */
+function legacyRedirectRules() {
+  const cfg = fs.readFileSync(path.join(root, "next.config.ts"), "utf8");
+  const rules = [...cfg.matchAll(/source:\s*"([^"]+)"\s*,\s*destination:\s*"([^"]+)"/g)]
+    .map((m) => ({ source: m[1], destination: m[2] }));
+  if (rules.length === 0) {
+    console.error(
+      "Could not parse any redirect rule out of next.config.ts. " +
+        "The legacy redirect audit is now a no-op, so update the regex in scripts/audit-routes.mjs."
+    );
+    process.exit(2);
+  }
+  return rules;
+}
+
+/**
+ * A real published path used to fill the `:path*` wildcard, expressed relative
+ * to the board root (that is with the leading `/icse/` stripped) so that a rule
+ * like `/cisce/:path*` -> `/icse/:path*` resolves to a genuinely existing page.
+ */
+function wildcardValue() {
+  const published = [...expectedRoutes()]
+    .filter((r) => r.startsWith("/icse/") && r.split("/").filter(Boolean).length >= 3)
+    .sort();
+  if (published.length === 0) throw new Error("No published ICSE route to test redirects with");
+  return published[0].replace(/^\/icse\//, "");
+}
+
+async function auditLegacyRedirects(base, seen) {
+  const wildcard = wildcardValue();
+  for (const { source, destination } of legacyRedirectRules()) {
+    const fill = (p) => p.replace(":path*", wildcard);
+    const from = fill(source);
+    const to = fill(destination);
+
+    // The first hop must point at the destination the config declares.
+    const first = await fetch(base + from, { redirect: "manual" });
+    const location = first.headers.get("location");
+    if (first.status < 300 || first.status >= 400 || !location) {
+      fail(`legacy redirect ${from} did not redirect (HTTP ${first.status})`);
+      continue;
+    }
+    const hop = new URL(location, base).pathname;
+    if (hop !== to) {
+      fail(`legacy redirect ${from} points at ${hop}, expected ${to}`);
+      continue;
+    }
+
+    // Following the chain must still land on a real page. Legacy destinations
+    // may themselves redirect onward (e.g. /icse/english -> /icse/class-9/english),
+    // so only the final status is asserted, not the final path.
+    const res = await fetch(base + from, { redirect: "follow" });
+    if (res.status !== 200) fail(`legacy redirect ${from} -> ${hop} -> HTTP ${res.status}, expected 200`);
+    seen.add(from);
+  }
 }
 
 const failures = [];
@@ -67,7 +150,7 @@ async function main() {
   if (!ready) { server.kill(); console.error("Server did not start"); process.exit(2); }
 
   try {
-    const queue = [...expectedRoutes(), "/icse/english", "/icse/english/class-10", "/icse/english/class-9"];
+    const queue = [...expectedRoutes()];
     const seen = new Set();
     const linkSources = new Map();
     while (queue.length) {
@@ -96,10 +179,11 @@ async function main() {
         }
       }
     }
-    for (const bad of ["/cisce/class-9/english/does-not-exist", "/cisce/class-9/nope", "/cisce/class-99", "/cisce/class-9/english/with-the-photographer"]) {
+    for (const bad of notFoundProbes()) {
       const r = await get(base, bad);
       if (r.status !== 404) fail(`${bad} should be 404, got ${r.status}`);
     }
+    await auditLegacyRedirects(base, seen);
     console.log(`\nRoute audit: ${seen.size} route(s) checked, ${failures.length} failure(s)`);
   } finally {
     server.kill();

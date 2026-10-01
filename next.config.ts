@@ -4,8 +4,13 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   async redirects() {
     return [
-      // The starter's Class 9 outline page is superseded by the CISCE Class IX English module.
-      { source: "/icse/english/class-9", destination: "/cisce/class-9/english", permanent: false },
+      // Legacy starter routes → board-aware equivalents.
+      { source: "/icse/english/class-9", destination: "/icse/class-9/english", permanent: false },
+      { source: "/icse/english/class-10", destination: "/icse/english", permanent: false },
+      { source: "/icse/english", destination: "/icse/class-9/english", permanent: false },
+      // Pre-expansion content tree lived under /cisce; it is now the ICSE board.
+      { source: "/cisce", destination: "/icse", permanent: false },
+      { source: "/cisce/:path*", destination: "/icse/:path*", permanent: false },
     ];
   },
 };

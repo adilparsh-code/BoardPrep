@@ -20,6 +20,20 @@ export const KIND_LABEL: Record<ChapterKind, string> = {
   drama: "Drama",
   civics: "Civics",
   history: "History",
+  "political-science": "Political Science",
+  geography: "Geography",
+  sociology: "Sociology",
+  psychology: "Psychology",
+  mathematics: "Mathematics",
+  physics: "Physics",
+  chemistry: "Chemistry",
+  biology: "Biology",
+  "computer-science": "Computer Science",
+  accountancy: "Accountancy",
+  "business-studies": "Business Studies",
+  economics: "Economics",
+  commerce: "Commerce",
+  hindi: "Hindi",
 };
 
 export const BASELINE_LABEL: Record<BaselineStatus, string> = {

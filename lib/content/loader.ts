@@ -49,6 +49,20 @@ export function getBoard(board: string): BoardManifest | null {
   return readJson<BoardManifest>(board, "board.json");
 }
 
+/** All registered boards, discovered from content/<board>/board.json. */
+export function listBoards(): BoardManifest[] {
+  try {
+    return fs
+      .readdirSync(CONTENT_ROOT, { withFileTypes: true })
+      .filter((d) => d.isDirectory())
+      .map((d) => getBoard(d.name))
+      .filter((b): b is BoardManifest => b !== null)
+      .sort((a, b) => a.name.localeCompare(b.name));
+  } catch {
+    return [];
+  }
+}
+
 export function getClass(board: string, classSlug: string): ClassManifest | null {
   if (!safeSlugs(board, classSlug)) return null;
   return readJson<ClassManifest>(board, classSlug, "class.json");
@@ -107,11 +121,25 @@ export function neighbours(subject: SubjectManifest, chapterSlug: string) {
   };
 }
 
-/** Enumerate everything for generateStaticParams. */
+/** Enumerate every subject for generateStaticParams, across all boards. */
+export function listSubjectParams() {
+  const params: { board: string; classSlug: string; subject: string }[] = [];
+  for (const b of listBoards().map((x) => x.slug)) {
+    const board = getBoard(b);
+    if (!board) continue;
+    for (const c of board.classes) {
+      const cls = getClass(b, c.slug);
+      if (!cls) continue;
+      for (const s of cls.subjects) params.push({ board: b, classSlug: c.slug, subject: s.slug });
+    }
+  }
+  return params;
+}
+
+/** Enumerate every *published* chapter for generateStaticParams, across all boards. */
 export function listStaticParams() {
-  const boards = ["cisce"];
   const params: { board: string; classSlug: string; subject: string; chapter: string }[] = [];
-  for (const b of boards) {
+  for (const b of listBoards().map((x) => x.slug)) {
     const board = getBoard(b);
     if (!board) continue;
     for (const c of board.classes) {

@@ -27,12 +27,44 @@ const HTML_RE = /<\/?[a-zA-Z!]|javascript:/i;
 
 const QUESTION_TYPES = ["mcq", "short", "long", "extract", "analytical", "fill-blank", "transformation", "hots"];
 const DIFFICULTIES = ["easy", "medium", "hard"];
-const CHAPTER_KINDS = ["grammar", "composition", "comprehension", "prose", "poetry", "drama", "civics", "history"];
+const CHAPTER_KINDS = [
+  // English language
+  "grammar", "composition", "comprehension",
+  // Literature
+  "prose", "poetry", "drama",
+  // Social science
+  "civics", "history", "political-science", "geography", "sociology", "psychology",
+  // STEM
+  "mathematics", "physics", "chemistry", "biology", "computer-science",
+  // Commerce
+  "accountancy", "business-studies", "economics", "commerce",
+  // Languages
+  "hindi",
+];
+/**
+ * Which chapter kinds may appear in which section family. A section family may
+ * also list "stem" as a shared pool for the pure-science sections; adding a
+ * subject family is a config change here plus a label entry.
+ */
 const KINDS_BY_SECTION = {
   language: ["grammar", "composition", "comprehension"],
   literature: ["prose", "poetry", "drama"],
   civics: ["civics"],
   history: ["history"],
+  "political-science": ["political-science", "civics"],
+  geography: ["geography"],
+  mathematics: ["mathematics"],
+  physics: ["physics"],
+  chemistry: ["chemistry"],
+  biology: ["biology"],
+  "computer-science": ["computer-science"],
+  accountancy: ["accountancy"],
+  "business-studies": ["business-studies"],
+  economics: ["economics"],
+  commerce: ["commerce", "accountancy", "business-studies", "economics"],
+  sociology: ["sociology"],
+  psychology: ["psychology"],
+  hindi: ["hindi", "composition", "comprehension"],
 };
 const BLOCK_TYPES = ["paragraph", "bullets", "terms", "examples"];
 const REVIEW = ["draft", "reviewed"];
@@ -42,7 +74,21 @@ const SYLLABUS_STATUS = ["listed", "supplementary"];
 
 const isStr = (v) => typeof v === "string" && v.trim().length > 0;
 const words = (s) => s.trim().split(/\s+/).filter(Boolean).length;
-const norm = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+/**
+ * Lowercase and collapse punctuation for duplicate detection.
+ *
+ * Operators are kept as distinct tokens: collapsing "+" and "-" to the same
+ * separator would make genuinely different Mathematics options such as
+ * "x^2 - 16" and "x^2 + 16" look like duplicates, which hides a real error
+ * instead of catching one.
+ */
+const norm = (s) =>
+  s
+    .toLowerCase()
+    .replace(/([+\-=<>])/g, " $1 ")
+    .replace(/[^a-z0-9+\-=<>]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 
 function readJson(file, ctx) {
   try {
@@ -111,6 +157,18 @@ function validateQuestion(q, chapterFile, ctx, seenIds, seenPrompts, chapterProm
 
   if (q.type === "extract") {
     if (!isStr(q.extract)) ctx.error(chapterFile, `${where} (${q.id}): extract question needs an "extract"`);
+  }
+
+  // Provenance. A question may only claim to be a past-paper question if it
+  // carries the year it was set. This is the guard that stops generated practice
+  // from ever being presented to a student as a real board exam question.
+  if (q.origin !== undefined && !["practice", "boardprep", "pyq"].includes(q.origin))
+    ctx.error(chapterFile, `${where} (${q.id}): invalid origin "${q.origin}"`);
+  if (q.origin === "pyq") {
+    if (!Number.isInteger(q.year) || q.year < 1950 || q.year > 2100)
+      ctx.error(chapterFile, `${where} (${q.id}): a pyq question must record the integer year it was set (found ${JSON.stringify(q.year)})`);
+  } else if (q.year !== undefined) {
+    ctx.error(chapterFile, `${where} (${q.id}): year is only allowed alongside origin "pyq"`);
   }
   if (q.extract !== undefined && isStr(q.extract) && words(q.extract) > MAX_EXTRACT_WORDS)
     ctx.error(chapterFile, `${where} (${q.id}): extract is ${words(q.extract)} words; limit is ${MAX_EXTRACT_WORDS} (copyright guard)`);
@@ -200,7 +258,7 @@ function validateChapterFile(file, ref, section, subjectMeta, ctx, globals) {
 
 export function validateContent(root) {
   const ctx = makeCtx(root);
-  const stats = { boards: 0, classes: 0, subjects: 0, chapters: 0, planned: 0, questions: 0 };
+  const stats = { boards: 0, classes: 0, subjects: 0, chapters: 0, planned: 0, questions: 0, unverifiedSubjects: 0 };
   const globals = { questionIds: new Map(), prompts: new Map(), chapterIds: new Map() };
 
   if (!fs.existsSync(root)) {
@@ -288,7 +346,17 @@ function validateSubject({ subj, subjectFile, subjectDir, board, cls, sref, ctx,
       if (!isStr(b.source) || !isStr(b.note)) ctx.error(subjectFile, `baseline ${b.examYear}: source and note required`);
     }
 
-  if (!Array.isArray(subj.sections) || subj.sections.length === 0) return ctx.error(subjectFile, "subject has no sections");
+  // A subject may be registered with no chapters yet. This is legitimate ONLY
+  // while its syllabus baseline is still "pending": it means the subject exists
+  // in the board/class registry but its official structure has not been
+  // verified, so no chapter titles are invented. The UI renders a deliberate
+  // empty state for these. Once a baseline is verified, chapters are required.
+  if (!Array.isArray(subj.sections) || subj.sections.length === 0) {
+    const allPending = subj.syllabusBaselines.every((b) => b.status === "pending");
+    if (!allPending) ctx.error(subjectFile, "subject has no sections (allowed only while the syllabus baseline is pending)");
+    stats.unverifiedSubjects++;
+    return;
+  }
 
   const referencedFiles = new Set();
   const sectionIds = new Map(), sectionSlugs = new Map(), groupIds = new Map(), chapterSlugs = new Map();
@@ -367,7 +435,8 @@ if (isMain) {
   for (const e of errors) console.error(`  ERROR ${e}`);
   console.log(
     `\nContent validation: ${stats.boards} board(s), ${stats.classes} class(es), ${stats.subjects} subject(s), ` +
-      `${stats.chapters} published chapter(s), ${stats.planned} planned, ${stats.questions} question(s) - ` +
+      `${stats.chapters} published chapter(s), ${stats.planned} planned, ${stats.questions} question(s), ` +
+      `${stats.unverifiedSubjects} subject(s) awaiting syllabus verification - ` +
       `${errors.length} error(s), ${warnings.length} warning(s)`,
   );
   process.exit(errors.length ? 1 : 0);
