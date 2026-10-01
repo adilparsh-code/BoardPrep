@@ -61,19 +61,64 @@ export interface SyllabusBaseline {
   note: string;
 }
 
-export type SectionKind = "language" | "literature" | "civics" | "history";
+/**
+ * Subject families. Each section of a subject manifest declares one family so
+ * the UI and the validator can present a subject appropriately. The list is
+ * intentionally not exhaustive: adding a new subject family is a config
+ * change here plus a label entry, never a code rewrite.
+ */
+export type SectionKind =
+  | "language"
+  | "literature"
+  | "civics"
+  | "history"
+  | "political-science"
+  | "geography"
+  | "mathematics"
+  | "physics"
+  | "chemistry"
+  | "biology"
+  | "computer-science"
+  | "accountancy"
+  | "business-studies"
+  | "economics"
+  | "commerce"
+  | "sociology"
+  | "psychology"
+  | "hindi";
+
 export type ChapterStatus = "published" | "planned";
 /** "listed" = appears in a syllabus baseline; "supplementary" = extra practice, clearly labelled. */
 export type SyllabusStatus = "listed" | "supplementary";
 export type ChapterKind =
+  // English language
   | "grammar"
   | "composition"
   | "comprehension"
+  // Literature
   | "prose"
   | "poetry"
   | "drama"
+  // Social science
   | "civics"
-  | "history";
+  | "history"
+  | "political-science"
+  | "geography"
+  | "sociology"
+  | "psychology"
+  // STEM
+  | "mathematics"
+  | "physics"
+  | "chemistry"
+  | "biology"
+  | "computer-science"
+  // Commerce
+  | "accountancy"
+  | "business-studies"
+  | "economics"
+  | "commerce"
+  // Languages
+  | "hindi";
 
 export interface ChapterRef {
   id: string;
@@ -158,6 +203,17 @@ export interface Question {
   type: QuestionType;
   difficulty: Difficulty;
   marks: number;
+  /**
+   * Provenance. `practice` (or its earlier alias `boardprep`) means original
+   * practice written by BoardPrep; `pyq` means the question is a reproduced
+   * past-paper question. The two are never mixed in the UI: a practice question
+   * is never relabelled as a PYQ, because claiming a board exam question we
+   * cannot verify would be false. Only questions carrying a verified `year` may
+   * use `pyq`. The default, when omitted, is `practice`.
+   */
+  origin?: "practice" | "boardprep" | "pyq";
+  /** Board exam year. Required when origin === "pyq". */
+  year?: number;
   /** For extract questions, put the (short, public-domain) extract in `extract` and the task in `prompt`. */
   extract?: string;
   prompt: string;

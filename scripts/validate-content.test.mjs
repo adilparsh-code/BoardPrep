@@ -12,7 +12,7 @@ function cloneContent() {
   fs.cpSync(realRoot, dir, { recursive: true });
   return dir;
 }
-const subjDir = (d) => path.join(d, "cisce", "class-9", "english");
+const subjDir = (d) => path.join(d, "icse", "class-9", "english");
 const readJ = (f) => JSON.parse(fs.readFileSync(f, "utf8"));
 const writeJ = (f, v) => fs.writeFileSync(f, JSON.stringify(v, null, 2));
 const has = (r, re) => r.errors.some((e) => re.test(e));
@@ -45,7 +45,7 @@ test("math-style less-than is allowed", () => assert.ok(!has(mutateChapter((c) =
 test("over-long extract is rejected (copyright guard)", () =>
   assert.ok(has(mutateChapter((c) => { c.questions[0].extract = Array(MAX_EXTRACT_WORDS + 5).fill("word").join(" "); }), /copyright guard/)));
 test("literature without third-party attribution is rejected", () => assert.ok(has(mutateChapter((c) => { c.sourceNote.thirdParty = ""; }), /thirdParty/)));
-test("chapter id must match manifest", () => assert.ok(has(mutateChapter((c) => { c.id = "cisce-9-eng-lit-other"; }), /does not match manifest/)));
+test("chapter id must match manifest", () => assert.ok(has(mutateChapter((c) => { c.id = "icse-9-eng-lit-other"; }), /does not match manifest/)));
 
 test("broken reference and orphan file are rejected", () => {
   const d = cloneContent();
@@ -103,4 +103,81 @@ test("empty section is rejected", () => {
   s.sections[0].groups = [];
   writeJ(sf, s);
   assert.ok(has(validateContent(d), /empty section/));
+});
+
+/* ---------- multi-board / scaffolded subjects ---------- */
+
+const boardFile = (d, b) => path.join(d, b, "board.json");
+
+test("every registered board, class and subject resolves to a manifest", () => {
+  for (const b of fs.readdirSync(realRoot, { withFileTypes: true }).filter((d) => d.isDirectory())) {
+    const bf = boardFile(realRoot, b.name);
+    assert.ok(fs.existsSync(bf), `${b.name}: missing board.json`);
+    const board = readJ(bf);
+    for (const c of board.classes) {
+      const cf = path.join(realRoot, b.name, c.slug, "class.json");
+      assert.ok(fs.existsSync(cf), `${b.name}/${c.slug}: missing class.json`);
+      for (const s of readJ(cf).subjects) {
+        const sf = path.join(realRoot, b.name, c.slug, s.slug, "subject.json");
+        assert.ok(fs.existsSync(sf), `${b.name}/${c.slug}/${s.slug}: missing subject.json (run scripts/scaffold-subjects.mjs)`);
+      }
+    }
+  }
+});
+
+test("all three boards are registered with the expected classes", () => {
+  const r = validateContent(realRoot);
+  assert.equal(r.errors.length, 0);
+  for (const b of ["icse", "isc", "cbse"]) {
+    const board = readJ(boardFile(realRoot, b));
+    assert.equal(board.slug, b);
+    assert.ok(board.classes.length > 0, `${b}: no classes`);
+  }
+});
+
+test("a subject may have no sections only while its baseline is pending", () => {
+  const d = cloneContent();
+  const sf = path.join(d, "isc", "class-12", "economics", "subject.json");
+  assert.ok(fs.existsSync(sf), "expected a scaffolded subject to exist");
+  const s = readJ(sf);
+  assert.deepEqual(s.sections, [], "scaffolded subject should start with no sections");
+
+  // Pending + no sections: accepted.
+  const ok = validateContent(d);
+  assert.equal(ok.errors.length, 0);
+
+  // Verified baseline + no sections: rejected, so chapters cannot be skipped
+  // once a syllabus has been verified.
+  s.syllabusBaselines[0].status = "official-verified";
+  writeJ(sf, s);
+  assert.ok(has(validateContent(d), /subject has no sections/));
+});
+
+test("chapter ids are unique across every board", () => {
+  const ids = new Map();
+  const walk = (dir) => fs.readdirSync(dir, { withFileTypes: true }).flatMap((d) => {
+    const p = path.join(dir, d.name);
+    return d.isDirectory() ? walk(p) : [p];
+  });
+  for (const f of walk(realRoot)) {
+    if (!f.endsWith(".json") || f.endsWith("board.json") || f.endsWith("class.json") || f.endsWith("subject.json")) continue;
+    const ch = readJ(f);
+    assert.ok(!ids.has(ch.id), `duplicate chapter id "${ch.id}" in ${f} and ${ids.get(ch.id)}`);
+    ids.set(ch.id, f);
+  }
+});
+
+test("question ids are unique across every board", () => {
+  const ids = new Set();
+  const walk = (dir) => fs.readdirSync(dir, { withFileTypes: true }).flatMap((d) => {
+    const p = path.join(dir, d.name);
+    return d.isDirectory() ? walk(p) : [p];
+  });
+  for (const f of walk(realRoot)) {
+    if (!f.endsWith(".json") || f.endsWith("board.json") || f.endsWith("class.json") || f.endsWith("subject.json")) continue;
+    for (const q of readJ(f).questions ?? []) {
+      assert.ok(!ids.has(q.id), `duplicate question id "${q.id}" in ${f}`);
+      ids.add(q.id);
+    }
+  }
 });

@@ -27,7 +27,7 @@ export default function AboutPage() {
           <h1>About BoardPrep</h1>
           <p className="lead">
             BoardPrep helps students understand and revise school subjects with clear summaries, explanations and
-            practice questions. Start with <Link className="text-link" href={routes.subject("class-9", "english")}>CISCE Class IX English</Link>.
+            practice questions. Start with <Link className="text-link" href={routes.subject("icse", "class-9", "english")}>ICSE Class IX English</Link>.
           </p>
         </section>
         <Disclaimer />

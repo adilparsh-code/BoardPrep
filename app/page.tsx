@@ -1,59 +1,64 @@
 import Link from "next/link";
-
-const boards = [
-  { name: "CISCE", description: "Class IX English is live: notes, summaries and practice.", href: "/cisce/class-9/english" },
-  { name: "ICSE", description: "Classes 9–10. Start with English.", href: "/icse/english" },
-  { name: "ISC", description: "Classes 11–12. Architecture ready.", href: "#" },
-  { name: "CBSE", description: "Multi-subject expansion planned.", href: "#" }
-];
+import { listBoards } from "@/lib/content/loader";
+import { routes } from "@/lib/content/routes";
 
 export default function Home() {
+  const boards = listBoards();
   return (
     <>
-      <header className="topbar">
-        <div className="container topbar-inner">
-          <Link className="brand" href="/">BoardPrep</Link>
-          <nav className="nav">
-            <Link href="/cisce/class-9/english">CISCE Class IX English</Link>
-            <Link href="/icse/english">ICSE English</Link>
-            <span>CBSE</span><span>ISC</span>
-          </nav>
+      <section className="hero">
+        <div className="container">
+          <div className="eyebrow">Learn · Practice · Revise · Improve</div>
+          <h1>Board preparation,<br />built properly.</h1>
+          <p className="lead">
+            BoardPrep is a multi-board learning platform: pick your board, class and subject, study the official
+            syllabus structure chapter by chapter, and practise with original questions and model answers.
+          </p>
+          <p style={{ marginTop: 18 }}>
+            <Link className="button" href={routes.boardsIndex}>Choose your board</Link>{" "}
+            <Link className="text-link" href={routes.dashboard}>Open dashboard</Link>{" "}
+            <Link className="text-link" href={routes.search}>Search</Link>
+          </p>
         </div>
-      </header>
+      </section>
 
-      <main>
-        <section className="hero">
-          <div className="container">
-            <div className="eyebrow">Learn · Practice · Test · Improve</div>
-            <h1>Board preparation,<br />built properly.</h1>
-            <p className="lead">
-              BoardPrep is being built as a multi-board learning platform. The first
-              implementation is ICSE English for Classes 9 and 10, with a structure
-              designed to expand to ISC, CBSE and other subjects.
-            </p>
+      <section className="section">
+        <div className="container">
+          <h2>Boards</h2>
+          <div className="grid">
+            {boards.map((b) => (
+              <div className="card" key={b.slug}>
+                <span className="pill">{b.name}</span>
+                <h3>{b.fullName}</h3>
+                <p>{b.description}</p>
+                <p className="muted">
+                  {b.classes.map((c) => c.label).join(" · ")}
+                </p>
+                <Link className="button" href={routes.board(b.slug)}>Open {b.name.replace(" (CISCE)", "")}</Link>
+              </div>
+            ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section className="section">
-          <div className="container">
-            <h2>Boards</h2>
-            <div className="grid">
-              {boards.map((board) => (
-                <div className="card" key={board.name}>
-                  <span className="pill">{board.name}</span>
-                  <h3>{board.name}</h3>
-                  <p>{board.description}</p>
-                  {board.href !== "#" && <Link className="button" href={board.href}>Open</Link>}
-                </div>
-              ))}
-            </div>
+      <section className="section">
+        <div className="container">
+          <h2>How it works</h2>
+          <div className="grid">
+            {[
+              ["1. Choose", "Board, class and subject — each class lists only subjects that actually apply to it."],
+              ["2. Learn", "Chapter pages follow the official syllabus: overview, concepts, key terms, timelines where relevant."],
+              ["3. Practice", "Original questions with model answers, marked by type and difficulty. Progress is saved per chapter."],
+              ["4. Analyse", "Your dashboard tracks readiness, weak chapters and revision needs, and names the single next best action."],
+            ].map(([t, d]) => (
+              <div className="card" key={t}>
+                <h3>{t}</h3>
+                <p>{d}</p>
+              </div>
+            ))}
           </div>
-        </section>
-      </main>
-
-      <footer className="footer">
-        <div className="container">BoardPrep — independent educational platform. Not affiliated with CISCE or CBSE.</div>
-      </footer>
+        </div>
+      </section>
     </>
   );
 }
