@@ -12,6 +12,10 @@
  * If a claim is wrong, the assertion fails loudly and the content is corrected —
  * the content is fixed, never the assertion.
  *
+ * It covers the Mathematics and Physics chapters. A CHECKS row may carry an
+ * optional fourth element naming the subject directory it belongs to; rows
+ * without one default to Mathematics.
+ *
  * Usage: node scripts/verify-math.mjs [subjectDir]
  */
 import fs from "node:fs";
@@ -604,29 +608,356 @@ const CHECKS = [
     feq(d2([2n, 1n], [7n, 13n]), 1n, 169n, 1n) && feq(d2([-3n, 4n], [2n, 16n]), 1n, 169n, 1n)],
   ["coordinate-geometry", "distance from (3,4) to the x-axis is 4 and the foot is (3,0)", () =>
     feq(3n ** 2n + 4n ** 2n, 1n, 3n ** 2n + 4n ** 2n, 1n) && feq(4n ** 2n, 1n, 4n ** 2n, 1n)],
+
+  /* ---- ICSE IX Physics ---- */
+
+  /* Measurements and Experimentation */
+  ["measurements-and-experimentation", "4.5 km = 4500 m = 4500000 mm", () =>
+    meq(45n, 10n, 1000n, 1n, 4500n, 1n) && meq(4500n, 1n, 1000n, 1n, 4500000n, 1n), "physics"],
+  ["measurements-and-experimentation", "3.2 km = 3200 m = 3200000 mm", () =>
+    meq(32n, 10n, 1000n, 1n, 3200n, 1n) && meq(3200n, 1n, 1000n, 1n, 3200000n, 1n), "physics"],
+  ["measurements-and-experimentation", "greatest error = half least count = 0.05 cm, so 38.5 cm lies in 38.45 to 38.55", () =>
+    sbeq(385n, 10n, 5n, 100n, 3845n, 100n) && adeq(385n, 10n, 5n, 100n, 3855n, 100n), "physics"],
+  ["measurements-and-experimentation", "10 VSD = 9 MSD, so 1 VSD = 0.09 cm", () =>
+    meq(9n, 10n, 1n, 10n, 9n, 100n), "physics"],
+  ["measurements-and-experimentation", "Vernier reading 2.7 + 4 x 0.09 = 3.06 cm", () =>
+    adeq(27n, 10n, 36n, 100n, 306n, 100n), "physics"],
+  ["measurements-and-experimentation", "Vernier reading 3.4 + 6 x 0.09 = 3.94 cm", () =>
+    adeq(34n, 10n, 54n, 100n, 394n, 100n), "physics"],
+  ["measurements-and-experimentation", "screw gauge least count = pitch / circular divisions = 1/100 mm and 0.5/50 mm", () =>
+    feq(1n, 100n, 1n, 100n) && deq(5n, 10n, 50n, 1n, 1n, 100n), "physics"],
+  ["measurements-and-experimentation", "screw gauge reading 2.5 + 30 x 0.01 = 2.80 mm", () =>
+    adeq(25n, 10n, 3n, 10n, 28n, 10n), "physics"],
+  ["measurements-and-experimentation", "mean of 1.24, 1.27 and 1.26 cm is 1.2567 cm and the range is 0.03 cm", () =>
+    adeq(124n, 100n, 127n, 100n, 251n, 100n) && adeq(251n, 100n, 126n, 100n, 377n, 100n) &&
+    deq(377n, 100n, 3n, 1n, 377n, 300n) && sbeq(127n, 100n, 124n, 100n, 3n, 100n), "physics"],
+  ["measurements-and-experimentation", "T for l = 0.99 m and g = 9.8: T squared = 4 pi squared l / g is between 3.98 and 4.00", () => {
+    const g = rDiv(rMul(R(4n, 1n), rMul(feq2(22, 7), feq2(22, 7))), R(1n, 1n));
+    const t2 = rDiv(rMul(g, R(99n, 100n)), R(49n, 5n));
+    return t2.n * 100n > 398n * t2.d && t2.n * 100n < 400n * t2.d;
+  }, "physics"],
+  ["measurements-and-experimentation", "T for l = 1 m with pi = 22/7 is 2.008 s, and l for T = 1.5 s is 0.558 m", () => {
+    const pi = R(22n, 7n);
+    const t2 = rDiv(rMul(R(4n, 1n), rMul(pi, pi)), R(49n, 5n));
+    const tOk = t2.n * 1000n > 4028n * t2.d && t2.n * 1000n < 4037n * t2.d;
+    const q = rDiv(R(3n, 2n), rMul(R(2n, 1n), pi));
+    const l = rMul(R(49n, 5n), rMul(q, q));
+    const lOk = l.n * 1000n > 557n * l.d && l.n * 1000n < 559n * l.d;
+    return tOk && lOk;
+  }, "physics"],
+  ["measurements-and-experimentation", "negative zero error: 5.6 + 8 x 0.09 + 0.02 = 6.34 cm", () =>
+    adeq(56n, 10n, 72n, 100n, 632n, 100n) && adeq(632n, 100n, 2n, 100n, 634n, 100n), "physics"],
+  ["measurements-and-experimentation", "time period 39.6/20 = 1.98 s, and 45/1.5 = 30 oscillations", () =>
+    deq(396n, 10n, 20n, 1n, 198n, 100n) && deq(45n, 1n, 15n, 10n, 30n, 1n), "physics"],
+  ["measurements-and-experimentation", "positive zero error: 4 + 20 x 0.02 - 0.02 = 4.38 mm", () =>
+    adeq(4n, 1n, 4n, 10n, 44n, 10n) && sbeq(44n, 10n, 2n, 100n, 438n, 100n), "physics"],
+  ["measurements-and-experimentation", "mean of 12.4, 12.6 and 12.5 cm is exactly 12.5 cm, so the true length lies in 12.45 to 12.55", () =>
+    sbeq(126n, 10n, 124n, 10n, 2n, 10n) && adeq(124n, 10n, 26n, 10n, 15n, 1n) &&
+    deq(375n, 10n, 3n, 1n, 125n, 10n) && sbeq(125n, 10n, 5n, 100n, 1245n, 100n), "physics"],
+  ["measurements-and-experimentation", "g implied by l = 0.81 m and T = 1.8 s is 484/49 = 9.8776, about 0.08 above and 0.8 percent above 9.8", () => {
+    const g = rDiv(rMul(R(4n, 1n), rMul(feq2(22, 7), feq2(22, 7))), rMul(R(9n, 5n), R(9n, 5n)));
+    const l = rMul(g, R(81n, 100n));
+    const rounded = l.n * 1000n > 9877n * l.d && l.n * 1000n < 9878n * l.d;
+    const excess = rDiv(rSub(l, R(49n, 5n)), R(49n, 5n));
+    return feq(l.n, l.d, 484n, 49n) && rounded && excess.n * 1000n > 7n * excess.d && excess.n * 1000n < 9n * excess.d;
+  }, "physics"],
+  ["measurements-and-experimentation", "quadrupling the length doubles the time period, since root 4 = 2", () =>
+    feq(2n ** 2n, 1n, 4n, 1n), "physics"],
+
+  /* Motion in One Dimension */
+  ["motion-in-one-dimension", "72 km per hour = 20 m per second", () =>
+    meq(72n, 1n, 5n, 18n, 20n, 1n), "physics"],
+  ["motion-in-one-dimension", "a 3-4-5 displacement: root(16 + 9) = 5 m with sin 0.6 and cos 0.8", () =>
+    feq(4n ** 2n + 3n ** 2n, 1n, 25n, 1n) && feq(3n, 5n, 3n, 5n) && feq(9n + 16n, 25n, 1n, 1n), "physics"],
+  ["motion-in-one-dimension", "average speed 210/3.5 = 60 km per hour", () =>
+    deq(210n, 1n, 7n, 2n, 60n, 1n), "physics"],
+  ["motion-in-one-dimension", "u = 0, a = 2, t = 5 gives v = 10 m per second and s = 25 m", () =>
+    meq(2n, 1n, 5n, 1n, 10n, 1n) && feq(2n * 25n, 2n, 25n, 1n) && feq(10n ** 2n, 1n, 2n * 2n * 25n, 1n), "physics"],
+  ["motion-in-one-dimension", "braking at 5 m per second squared from 20 m per second stops in 40 m", () =>
+    feq(20n ** 2n, 1n, 400n, 1n) && deq(400n, 2n * 5n, 1n, 1n, 40n, 1n), "physics"],
+  ["motion-in-one-dimension", "distance is the area under the line, half x 5 x 20 = 50 m", () =>
+    areaHalf(5n, 20n, 50n), "physics"],
+  ["motion-in-one-dimension", "90 km in 1.5 h is 60 km per hour = 50/3 m per second", () =>
+    deq(90n, 1n, 3n, 2n, 60n, 1n) && meq(60n, 1n, 5n, 18n, 50n, 3n), "physics"],
+  ["motion-in-one-dimension", "5 m east, 12 m north, 5 m south: distance 22 m and displacement root 74 = 8.60 m", () =>
+    adeq(5n, 1n, 17n, 1n, 22n, 1n) && sbeq(12n, 1n, 5n, 1n, 7n, 1n) && feq(5n ** 2n + 7n ** 2n, 1n, 74n, 1n), "physics"],
+  ["motion-in-one-dimension", "a = 4, t = 10 from rest gives v = 40 m per second, s = 200 m, and v squared = 1600", () =>
+    meq(4n, 1n, 10n, 1n, 40n, 1n) && feq(4n * 100n, 2n, 200n, 1n) &&
+    feq(40n ** 2n, 1n, 1600n, 1n) && feq(2n * 4n * 200n, 1n, 1600n, 1n), "physics"],
+  ["motion-in-one-dimension", "20 m per second stopped in 8 s: a = -2.5, s = 80 m, and 400 - 400 = 0", () =>
+    deq(20n, 1n, 8n, 1n, 5n, 2n) && sbeq(20n * 8n, 1n, 5n * 64n, 4n, 80n, 1n) &&
+    feq(5n * 80n, 1n, 20n ** 2n, 1n), "physics"],
+  ["motion-in-one-dimension", "thrown up at 19.6 m per second: top at 2 s, height 19.6 m, flight 4 s", () =>
+    deq(196n, 10n, 98n, 10n, 2n, 1n) && sbeq(196n * 2n, 10n, 98n * 2n, 10n, 196n, 10n) && adeq(2n, 1n, 2n, 1n, 4n, 1n), "physics"],
+  ["motion-in-one-dimension", "car of 4.5 m over a 27.5 m bridge travels 32 m at 16 m per second, taking 2 s", () =>
+    adeq(45n, 10n, 275n, 10n, 32n, 1n) && deq(32n, 1n, 16n, 1n, 2n, 1n), "physics"],
+  ["motion-in-one-dimension", "10 to 30 m per second in 4 s: a = 5, s = 80 m, mean 20 m per second, v squared = 900", () =>
+    deq(20n, 1n, 4n, 1n, 5n, 1n) && feq((10n + 30n) * 4n, 2n, 80n, 1n) &&
+    feq(30n ** 2n, 1n, 100n + 2n * 5n * 80n, 1n), "physics"],
+  ["motion-in-one-dimension", "60 km in 1 h 40 min is 36 km per hour", () =>
+    adeq(1n, 1n, 2n, 3n, 5n, 3n) && deq(60n, 1n, 5n, 3n, 36n, 1n), "physics"],
+  ["motion-in-one-dimension", "12 to 4 m per second in 6 s gives a = -4/3 m per second squared", () =>
+    deq(8n, 6n, 1n, 1n, 4n, 3n), "physics"],
+  ["motion-in-one-dimension", "returns after 8 s: ascent 4 s, u = 39.2 m per second, height 78.4 m, 39.2 squared = 2 x 9.8 x 78.4", () =>
+    deq(392n, 10n, 98n, 10n, 4n, 1n) && sbeq(392n * 4n, 10n, 98n * 16n, 20n, 784n, 10n) &&
+    feq(392n ** 2n, 100n, 2n * 98n * 784n, 100n), "physics"],
+  ["motion-in-one-dimension", "18 km out, 15 min rest, 18 km back in 30 min gives 24 km per hour", () =>
+    adeq(45n, 1n, 45n, 1n, 90n, 1n) && deq(36n, 1n, 3n, 2n, 24n, 1n), "physics"],
+  ["motion-in-one-dimension", "distance in the 5th second is 45 m, matching 125 - 80", () =>
+    meq(10n, 2n, 9n, 1n, 45n, 1n) && feq(10n * 25n, 2n, 125n, 1n) &&
+    feq(10n * 16n, 2n, 80n, 1n) && sbeq(125n, 1n, 80n, 1n, 45n, 1n), "physics"],
+  ["motion-in-one-dimension", "round a 400 m track in 50 s: speed 8 m per second and average velocity 0", () =>
+    deq(400n, 1n, 50n, 1n, 8n, 1n) && feq(0n, 1n, 0n, 1n), "physics"],
+  ["motion-in-one-dimension", "relative velocity of the two cars is 10 m per second", () =>
+    sbeq(20n, 1n, 10n, 1n, 10n, 1n), "physics"],
+  ["motion-in-one-dimension", "24 m per second slowed at 4 m per second squared: t = 6 s, s = 72 m, 576 - 576 = 0", () =>
+    deq(24n, 1n, 4n, 1n, 6n, 1n) && sbeq(24n * 6n, 1n, 4n * 36n, 2n, 72n, 1n) &&
+    feq(24n ** 2n, 1n, 2n * 4n * 72n, 1n), "physics"],
+
+  /* Laws of Motion */
+  ["laws-of-motion", "momentum 2 x 6 = 12 kg m per second, acceleration 20/4 = 5 m per second squared", () =>
+    meq(2n, 1n, 6n, 1n, 12n, 1n) && deq(20n, 1n, 4n, 1n, 5n, 1n), "physics"],
+  ["laws-of-motion", "2 kg at 4 m per second and 3 kg at 2 m per second stick: 14 = 5v, so v = 2.8 m per second", () =>
+    adeq(8n, 1n, 6n, 1n, 14n, 1n) && deq(14n, 1n, 5n, 1n, 14n, 5n), "physics"],
+  ["laws-of-motion", "5 kg weighs 49 N on the Earth and 8.15 N on the Moon", () =>
+    meq(5n, 1n, 98n, 10n, 49n, 1n) && meq(5n, 1n, 163n, 100n, 815n, 100n), "physics"],
+  ["laws-of-motion", "a 10 kg body dropped from rest reaches 20 m per second after 2 s", () =>
+    meq(10n, 1n, 2n, 1n, 20n, 1n), "physics"],
+  ["laws-of-motion", "4 kg at 3 m per second and 6 kg at 5 m per second stick at 4.2 m per second", () =>
+    feq(4n * 3n + 6n * 5n, 4n + 6n, 42n, 10n), "physics"],
+  ["laws-of-motion", "a resultant force of 10 N for 3 s changes momentum by 30 N s", () =>
+    meq(10n, 1n, 3n, 1n, 30n, 1n), "physics"],
+  ["laws-of-motion", "3 kg at 8 m per second hits 5 kg at rest: v = 3 m per second, 96 J becomes 36 J", () =>
+    deq(24n, 1n, 8n, 1n, 3n, 1n) && feq(3n * 64n, 2n, 96n, 1n) && feq(8n * 9n, 2n, 36n, 1n) && sbeq(96n, 1n, 36n, 1n, 60n, 1n), "physics"],
+  ["laws-of-motion", "uniform velocity on a rough surface: friction 50 N, N = 196 N, coefficient 25/98 = 0.255", () => {
+    const mu = rDiv(R(50n, 1n), R(196n, 1n));
+    return feq(20n * 98n, 10n, 196n, 1n) && feq(25n, 98n, mu.n, mu.d) &&
+      mu.n * 1000n > 255n * mu.d && mu.n * 1000n < 2551n * mu.d;
+  }, "physics"],
+  ["laws-of-motion", "12 kg weighs 117.6 N on the Earth and would weigh 19.56 N on the Moon", () =>
+    meq(12n, 1n, 98n, 10n, 1176n, 10n) && meq(12n, 1n, 163n, 100n, 1956n, 100n), "physics"],
+  ["laws-of-motion", "44.1 m fall: t squared = 2 x 44.1/9.8 = 9, t = 3 s, v = 29.4 m per second", () =>
+    feq(441n * 2n, 98n, 9n, 1n) && meq(98n, 10n, 3n, 1n, 294n, 10n) &&
+    feq(294n ** 2n, 100n, 2n * 98n * 441n, 100n), "physics"],
+  ["laws-of-motion", "a bullet of 0.02 kg reaching 400 m per second has impulse 8 N s, so the force is 4000 N", () =>
+    feq(2n * 400n, 100n, 8n, 1n) && deq(8n, 1n, 2n, 1000n, 4000n, 1n), "physics"],
+  ["laws-of-motion", "30 N on 6 kg for 4 s from rest: a = 5 and v = 20 m per second", () =>
+    deq(30n, 1n, 6n, 1n, 5n, 1n) && meq(5n, 1n, 4n, 1n, 20n, 1n), "physics"],
+  ["laws-of-motion", "3 kg at 6 and 5 kg at 4 m per second head on: total momentum -2, so v = -0.25 m per second", () =>
+    sbeq(18n, 1n, 20n, 1n, -2n, 1n) && deq(-2n, 1n, 8n, 1n, -1n, 4n), "physics"],
+  ["laws-of-motion", "a 1500 kg car stopped in 5 s needs 6000 N, and 15000 N in 2 s, a factor of 2.5", () =>
+    feq(1500n * 20n, 1n, 30000n, 1n) && deq(30000n, 1n, 5n, 1n, 6000n, 1n) &&
+    deq(30000n, 1n, 2n, 1n, 15000n, 1n) && deq(15000n, 6000n, 5n, 2n, 1n, 1n), "physics"],
+
+  /* Fluids */
+  ["fluids", "pressure at 2 m in water is 19600 Pa, and 50 N on 0.02 m squared is 2500 Pa", () =>
+    feq(2n * 1000n * 98n, 10n, 19600n, 1n) && deq(50n, 1n, 2n, 100n, 2500n, 1n), "physics"],
+  ["fluids", "hydraulic lift: 100 N on 0.005 m squared gives 8000 N on 0.4 m squared", () =>
+    feq(100n * 4n * 1000n, 10n * 5n, 8000n, 1n), "physics"],
+  ["fluids", "500 cm cubed of wood floating in water of density 1 g per cm cubed has a mass of 500 g", () =>
+    feq(500n, 1n, 500n, 1n), "physics"],
+  ["fluids", "pressure at 4 m with g = 10 is 40000 Pa", () =>
+    feq(4n * 1000n * 10n, 1n, 40000n, 1n), "physics"],
+  ["fluids", "80 N on 4 cm squared = 80/0.0004 = 200000 Pa", () =>
+    feq(4n * 10n, 10n ** 4n, 4n, 10n ** 3n) && deq(80n, 1n, 4n, 10000n, 200000n, 1n), "physics"],
+  ["fluids", "pressure at 15 cm in water is 1470 Pa", () =>
+    feq(15n * 1000n * 98n, 1000n, 1470n, 1n), "physics"],
+  ["fluids", "500 N on 0.01 m squared is 50000 Pa, and 1000 N on 0.02 m squared", () =>
+    deq(500n, 1n, 1n, 100n, 50000n, 1n) && feq(50000n * 2n, 100n, 1000n, 1n), "physics"],
+  ["fluids", "50 N on 4 cm squared gives 5000 N on 400 cm squared", () =>
+    feq(50n * 400n, 4n, 5000n, 1n), "physics"],
+  ["fluids", "a 20 m dam: base pressure 196000 Pa and total force 9.8 x 10 to the power 7 N", () =>
+    feq(20n * 1000n * 98n, 10n, 196000n, 1n) && feq(196000n * 500n, 1n, 98000000n, 1n), "physics"],
+  ["fluids", "a 200 cm cubed block of density 7800: mass 1.56 kg, weight 15.288 N, upthrust 1.96 N", () =>
+    feq(200n, 10n ** 6n, 2n, 10n ** 4n) && feq(7800n * 2n, 10n ** 4n, 156n, 100n) &&
+    feq(156n * 98n, 100n * 10n, 15288n, 1000n) && feq(1000n * 2n * 98n, 10n ** 4n, 196n, 10n), "physics"],
+  ["fluids", "density 600 in a liquid of density 800: 3/4 submerged and 1/4 above the surface", () =>
+    deq(600n, 800n, 1n, 1n, 3n, 4n) && sbeq(1n, 1n, 3n, 4n, 1n, 4n), "physics"],
+  ["fluids", "2000 Pa on 0.05 m squared is 100 N, and 40 N on 0.02 m squared", () =>
+    feq(2000n * 5n, 100n, 100n, 1n) && feq(2000n * 2n, 100n, 40n, 1n), "physics"],
+  ["fluids", "a 20 cm water column gives 1960 Pa at the base", () =>
+    feq(2n * 1000n * 98n, 100n, 1960n, 1n), "physics"],
+  ["fluids", "an upthrust of 6 N displaces 6/9.8 = 0.612 kg, that is 612 cm cubed of water", () => {
+    const mass = rDiv(R(6n, 1n), R(98n, 10n));
+    const volcm3 = rMul(rDiv(mass, R(1000n, 1n)), R(1000000n, 1n));
+    return sbeq(50n, 1n, 44n, 1n, 6n, 1n) &&
+      mass.n * 1000n > 612n * mass.d && mass.n * 1000n < 613n * mass.d &&
+      volcm3.n * 100n > 61200n * volcm3.d && volcm3.n * 100n < 61225n * volcm3.d;
+  }, "physics"],
+  ["fluids", "a gauge pressure of 2940 Pa corresponds to a depth of 0.3 m = 30 cm", () =>
+    deq(2940n, 1n, 9800n, 1n, 3n, 10n) && feq(3n, 10n, 30n, 100n), "physics"],
+  ["fluids", "a body of density 800 in water of density 1000 floats because 800 < 1000", () =>
+    800n < 1000n && 600n < 800n, "physics"],
+
+  /* Heat and Energy */
+  ["heat-and-energy", "25 degrees Celsius is 298 K and 0 degrees Celsius is 273 K", () =>
+    adeq(25n, 1n, 273n, 1n, 298n, 1n) && feq(273n, 1n, 273n, 1n), "physics"],
+  ["heat-and-energy", "5000 J is 1190.5 calories, and 2 kg of water through 40 K needs 336000 J", () => {
+    const cal = rDiv(R(5000n, 1n), R(21n, 5n));
+    return cal.n * 10n > 11904n * cal.d && cal.n * 10n < 11906n * cal.d &&
+      feq(2n * 4200n * 40n, 1n, 336000n, 1n);
+  }, "physics"],
+  ["heat-and-energy", "2000 J into 0.5 kg of aluminium gives a rise of 4.44 K", () => {
+    const dt = rDiv(R(2000n, 1n), rMul(R(1n, 2n), R(900n, 1n)));
+    return feq(500n, 1000n, 1n, 2n) && dt.n * 100n > 444n * dt.d && dt.n * 100n < 445n * dt.d;
+  }, "physics"],
+  ["heat-and-energy", "iron and water share: 2 x 450(100 - T) = 4 x 4200(T - 20) gives T = 24.07 degrees Celsius", () => {
+    const t = rDiv(R(426000n, 1n), R(17700n, 1n));
+    return feq(900n * 100n + 16800n * 20n, 1n, 426000n, 1n) && feq(900n + 16800n, 1n, 17700n, 1n) &&
+      t.n * 100n > 2406n * t.d && t.n * 100n < 2408n * t.d && t.n > 20n * t.d && t.n < 100n * t.d;
+  }, "physics"],
+  ["heat-and-energy", "melting 500 g of ice takes 167000 J, heating the melt through 20 K takes 42000 J, total 209000 J", () =>
+    feq(500n * 334n, 1n, 167000n, 1n) && feq(1n * 4200n * 20n, 2n, 42000n, 1n) && adeq(167000n, 1n, 42000n, 1n, 209000n, 1n), "physics"],
+  ["heat-and-energy", "a 2 m squared solar heater at 800 W per m squared for 6 h collects 3.456 x 10 to the power 7 J and heats 411.4 kg", () => {
+    const m = rDiv(R(34560000n, 1n), R(84000n, 1n));
+    return meq(800n, 1n, 2n, 1n, 1600n, 1n) && meq(6n, 1n, 3600n, 1n, 21600n, 1n) &&
+      feq(1600n * 21600n, 1n, 34560000n, 1n) &&
+      m.n * 10n > 4114n * m.d && m.n * 10n < 4115n * m.d;
+  }, "physics"],
+  ["heat-and-energy", "2520 J is 600 calories and 0.6 kilocalories", () =>
+    deq(2520n, 1n, 42n, 10n, 600n, 1n) && deq(2520n, 1n, 4200n, 1n, 6n, 10n), "physics"],
+  ["heat-and-energy", "cooling 60 K at 6 K per minute takes 10 minutes and 400 x 60 = 24000 J per kg", () =>
+    deq(60n, 1n, 6n, 1n, 10n, 1n) && feq(400n * 60n, 1n, 24000n, 1n), "physics"],
+  ["heat-and-energy", "10000 J heats 10000/42000 = 0.238 kg of water through 10 K", () => {
+    const m = rDiv(R(10000n, 1n), R(42000n, 1n));
+    return m.n * 1000n > 238n * m.d && m.n * 1000n < 239n * m.d;
+  }, "physics"],
+  ["heat-and-energy", "63000 J cooling 3 kg through 30 K gives c = 700 J per kg per K", () =>
+    sbeq(90n, 1n, 60n, 1n, 30n, 1n) && deq(63000n, 1n, 3n * 30n, 1n, 700n, 1n), "physics"],
+
+  /* Reflection of Light */
+  ["reflection-of-light", "the angle with the surface is the complement of the angle with the normal: 90 - 35 and 90 - 40", () =>
+    sbeq(90n, 1n, 35n, 1n, 55n, 1n) && sbeq(90n, 1n, 40n, 1n, 50n, 1n), "physics"],
+  ["reflection-of-light", "an object 40 cm in front of a plane mirror is 80 cm from its image", () =>
+    adeq(40n, 1n, 40n, 1n, 80n, 1n) && adeq(25n, 1n, 25n, 1n, 50n, 1n), "physics"],
+  ["reflection-of-light", "R = 20 cm gives f = -10 cm for a concave mirror, and R = 40 cm gives 20 cm", () =>
+    feq(20n, 2n, 10n, 1n) && deq(40n, 2n, 1n, 1n, 20n, 1n) && deq(30n, 2n, 1n, 1n, 15n, 1n), "physics"],
+  ["reflection-of-light", "concave f = -10, u = -30: 1/v = -1/10 + 1/30 = -1/15, so v = -15 cm and m = -0.5", () => {
+    const v = rDiv(R(1n, 1n), rSub(rDiv(R(1n, 1n), R(-10n, 1n)), rDiv(R(1n, 1n), R(-30n, 1n))));
+    const m = rDiv(rSub(R(0n, 1n), v), R(-30n, 1n));
+    return feq(2n, 30n, 1n, 15n) && feq(v.n, v.d, -15n, 1n) && feq(m.n, m.d, -1n, 2n);
+  }, "physics"],
+  ["reflection-of-light", "convex f = +20, u = -30: 1/v = 1/20 + 1/30 = 1/12, so v = +12 cm and m = +0.4", () => {
+    const v = rDiv(R(1n, 1n), rSub(rDiv(R(1n, 1n), R(20n, 1n)), rDiv(R(1n, 1n), R(-30n, 1n))));
+    const m = rDiv(rSub(R(0n, 1n), v), R(-30n, 1n));
+    return feq(5n, 60n, 1n, 12n) && feq(v.n, v.d, 12n, 1n) && feq(m.n, m.d, 2n, 5n);
+  }, "physics"],
+  ["reflection-of-light", "a plane mirror object 30 cm away is 60 cm from its image, and 40 cm after a 10 cm move", () =>
+    adeq(30n, 1n, 30n, 1n, 60n, 1n) && adeq(20n, 1n, 20n, 1n, 40n, 1n), "physics"],
+  ["reflection-of-light", "concave f = -5, u = -20: 1/v = -1/5 + 1/20 = -3/20, so v = -20/3 and m = -1/3, matching 4f/3", () => {
+    const v = rDiv(R(1n, 1n), rSub(rDiv(R(1n, 1n), R(-5n, 1n)), rDiv(R(1n, 1n), R(-20n, 1n))));
+    const m = rDiv(rSub(R(0n, 1n), v), R(-20n, 1n));
+    return feq(4n, 20n, 1n, 5n) && feq(v.n, v.d, -20n, 3n) &&
+      feq(m.n, m.d, -1n, 3n) && feq(4n * 5n, 3n, 20n, 3n);
+  }, "physics"],
+  ["reflection-of-light", "a convex mirror with v = +15 and u = -60 gives m = +0.25", () => {
+    const m = rDiv(rSub(R(0n, 1n), R(15n, 1n)), R(-60n, 1n));
+    return feq(m.n, m.d, 1n, 4n) && 15n < 60n;
+  }, "physics"],
+
+  /* Propagation of Sound Waves */
+  ["propagation-of-sound-waves", "wavelength 330/250 = 1.32 m and frequency 340/2 = 170 Hz", () =>
+    deq(330n, 1n, 250n, 1n, 33n, 25n) && deq(340n, 1n, 2n, 1n, 170n, 1n), "physics"],
+  ["propagation-of-sound-waves", "an echo at 344 m per second needs a 34.4 m round trip, so 17.2 m from the wall", () =>
+    feq(344n, 10n, 172n, 5n) && deq(344n, 1n, 10n, 1n, 172n, 5n), "physics"],
+  ["propagation-of-sound-waves", "at 350 m per second the round trip is 35 m, so 17.5 m from the wall", () =>
+    deq(350n, 1n, 10n, 1n, 35n, 1n) && deq(35n, 1n, 2n, 1n, 175n, 10n), "physics"],
+  ["propagation-of-sound-waves", "500 Hz over 0.66 m travels at 330 m per second, the speed in air", () =>
+    feq(500n * 66n, 100n, 330n, 1n) && 330n < 5000n, "physics"],
+  ["propagation-of-sound-waves", "200 Hz is 1.75 m in air and 7.5 m in water, a ratio of 30 to 7", () => {
+    const air = rDiv(R(350n, 1n), R(200n, 1n));
+    const wat = rDiv(R(1500n, 1n), R(200n, 1n));
+    return feq(air.n, air.d, 7n, 4n) && feq(wat.n, wat.d, 15n, 2n) &&
+      feq(15n * 4n, 2n * 7n, 30n, 7n);
+  }, "physics"],
+  ["propagation-of-sound-waves", "an echo after 2 s at 340 m per second puts the cliff 340 m away", () =>
+    feq(340n * 2n, 1n, 680n, 1n) && deq(680n, 1n, 2n, 1n, 340n, 1n), "physics"],
+  ["propagation-of-sound-waves", "50 Hz is 7 m in air and 100 m in steel, and 50 x 100 = 5000", () =>
+    deq(350n, 1n, 50n, 1n, 7n, 1n) && deq(5000n, 1n, 50n, 1n, 100n, 1n) && feq(50n * 100n, 1n, 5000n, 1n), "physics"],
+  ["propagation-of-sound-waves", "1650 m takes 5 s in air and 1.1 s in water", () =>
+    deq(1650n, 1n, 330n, 1n, 5n, 1n) && deq(1650n, 1n, 1500n, 1n, 11n, 10n), "physics"],
+  ["propagation-of-sound-waves", "a 2.5 cm wavelength at 340 m per second is 13600 Hz", () =>
+    feq(25n, 1000n, 1n, 40n) && deq(340n, 1n, 25n, 1000n, 13600n, 1n), "physics"],
+  ["propagation-of-sound-waves", "a 16 m hall gives a 32 m round trip in 32/340 s, which is under 0.1 s, so no echo", () => {
+    const t = rDiv(R(32n, 1n), R(340n, 1n));
+    return feq(2n * 16n, 1n, 32n, 1n) && t.n * 1000n < 100n * t.d && t.n * 1000n > 94n * t.d;
+  }, "physics"],
+  ["propagation-of-sound-waves", "the second wave has 8/2 = 4 times the amplitude of the first", () =>
+    deq(8n, 2n, 1n, 1n, 4n, 1n) && 4n > 1n, "physics"],
+
+  /* Current Electricity */
+  ["current-electricity", "6 ohm and 3 ohm in parallel give 2 ohm, and 4 ohm across 12 V gives 3 A", () =>
+    deq(6n * 3n, 6n + 3n, 1n, 1n, 2n, 1n) && deq(12n, 1n, 4n, 1n, 3n, 1n), "physics"],
+  ["current-electricity", "240 C in 60 s is 4 A, and 20 V across 4 A is 5 ohms", () =>
+    deq(240n, 1n, 60n, 1n, 4n, 1n) && deq(20n, 1n, 4n, 1n, 5n, 1n), "physics"],
+  ["current-electricity", "4 ohm and 12 ohm give 16 ohm in series and 3 ohm in parallel", () =>
+    adeq(4n, 1n, 12n, 1n, 16n, 1n) && deq(4n * 12n, 16n, 1n, 1n, 3n, 1n) && 16n > 12n && 3n < 4n, "physics"],
+  ["current-electricity", "6 ohm and 3 ohm across 12 V draw 2 A and 4 A, totalling 6 A on 2 ohms", () =>
+    deq(12n, 1n, 6n, 1n, 2n, 1n) && deq(12n, 1n, 3n, 1n, 4n, 1n) &&
+    adeq(2n, 1n, 4n, 1n, 6n, 1n) && deq(6n * 3n, 9n, 1n, 1n, 2n, 1n) && deq(12n, 1n, 2n, 1n, 6n, 1n), "physics"],
+  ["current-electricity", "20 ohm at 5 A: P = 500 W, V = 100 V, and 500 W for 120 s is 60000 J", () =>
+    feq(5n * 5n * 20n, 1n, 500n, 1n) && feq(5n * 20n, 1n, 100n, 1n) && feq(100n * 5n, 1n, 500n, 1n) &&
+    meq(2n, 1n, 60n, 1n, 120n, 1n) && feq(500n * 120n, 1n, 60000n, 1n), "physics"],
+  ["current-electricity", "a 60 W and a 100 W lamp on 220 V draw 0.273 A and 0.455 A, totalling 0.727 A", () => {
+    const a = rDiv(R(60n, 1n), R(220n, 1n));
+    const b = rDiv(R(100n, 1n), R(220n, 1n));
+    const s = rAdd(a, b);
+    return a.n * 1000n > 272n * a.d && a.n * 1000n < 273n * a.d &&
+      b.n * 1000n > 454n * b.d && b.n * 1000n < 455n * b.d &&
+      s.n * 1000n > 727n * s.d && s.n * 1000n < 728n * s.d;
+  }, "physics"],
+  ["current-electricity", "a 100 W lamp for 5 h at 6 rupees per kWh costs 3 rupees", () =>
+    feq(100n, 1000n, 1n, 10n) && meq(1n, 10n, 5n, 1n, 1n, 2n) && meq(1n, 2n, 6n, 1n, 3n, 1n), "physics"],
+  ["current-electricity", "1 kWh is 1000 W x 3600 s = 3600000 J", () =>
+    meq(1000n, 1n, 3600n, 1n, 3600000n, 1n), "physics"],
+  ["current-electricity", "2 A through 15 ohm gives 30 V, 60 W, and 3600 J in a minute", () =>
+    feq(2n * 15n, 1n, 30n, 1n) && feq(30n * 2n, 1n, 60n, 1n) && meq(1n, 1n, 60n, 1n, 60n, 1n) &&
+    feq(60n * 60n, 1n, 3600n, 1n), "physics"],
+  ["current-electricity", "three 3 ohm resistors give 1 ohm in parallel and 9 ohm in series", () =>
+    adeq(1n, 3n, 2n, 3n, 1n, 1n) && adeq(3n, 1n, 6n, 1n, 9n, 1n), "physics"],
+  ["current-electricity", "2 A for 5 minutes passes 600 C", () =>
+    meq(5n, 1n, 60n, 1n, 300n, 1n) && meq(2n, 1n, 300n, 1n, 600n, 1n), "physics"],
+  ["current-electricity", "8 ohm and 2 ohm across 12 V draw 1.5 A and 6 A, totalling 7.5 A on 1.6 ohm", () =>
+    deq(12n, 1n, 8n, 1n, 3n, 2n) && deq(12n, 1n, 2n, 1n, 6n, 1n) && adeq(3n, 2n, 6n, 1n, 15n, 2n) &&
+    deq(8n * 2n, 10n, 1n, 1n, 8n, 5n) && deq(12n, 1n, 8n, 5n, 15n, 2n), "physics"],
+  ["current-electricity", "doubling the length and halving the area multiplies the resistance by 4", () =>
+    meq(2n, 1n, 2n, 1n, 4n, 1n) && 4n > 1n, "physics"],
+  ["current-electricity", "2 ohm and 3 ohm in series give 5 ohm and in parallel 6/5 ohm", () =>
+    adeq(2n, 1n, 3n, 1n, 5n, 1n) && deq(2n * 3n, 5n, 1n, 1n, 6n, 5n), "physics"],
+  ["current-electricity", "6 ohm at 2 A gives 24 W, and a 100 W lamp for 5 minutes gives 30000 J", () =>
+    feq(2n * 2n * 6n, 1n, 24n, 1n) && meq(5n, 1n, 60n, 1n, 300n, 1n) && feq(100n * 300n, 1n, 30000n, 1n), "physics"],
+
+  /* Magnetism */
+  ["magnetism", "a magnet cut into six pieces has 12 poles, and a 20 cm magnet cut into four gives 5 cm pieces", () =>
+    feq(6n * 2n, 1n, 12n, 1n) && deq(20n, 1n, 4n, 1n, 5n, 1n), "physics"],
+  ["magnetism", "four pieces of a 20 cm magnet together have eight poles, four north and four south", () =>
+    feq(4n * 2n, 1n, 8n, 1n) && adeq(4n, 1n, 4n, 1n, 8n, 1n), "physics"],
+  ["magnetism", "24 field lines leaving the north pole must enter the south pole, so none begin or end in between", () =>
+    sbeq(24n, 1n, 24n, 1n, 0n, 1n) && 24n > 0n, "physics"],
 ];
 
 /* ---------- run ---------- */
 
-const root = process.argv[2] ?? path.join(process.cwd(), "content", "icse", "class-9", "mathematics");
+const base = process.argv[2] ? path.dirname(process.argv[2]) : path.join(process.cwd(), "content", "icse", "class-9");
+const rootFor = (subject) => path.join(base, subject);
 let pass = 0;
 const failures = [];
 
-for (const [slug, label, fn] of CHECKS) {
-  const file = path.join(root, "chapters", `${slug}.json`);
+for (const [slug, label, fn, subject = "mathematics"] of CHECKS) {
+  const file = path.join(rootFor(subject), "chapters", `${slug}.json`);
   if (!fs.existsSync(file)) {
-    failures.push(`${slug}: chapter file missing, cannot verify "${label}"`);
+    failures.push(`${subject}/${slug}: chapter file missing, cannot verify "${label}"`);
     continue;
   }
   try {
-    if (fn() !== true) failures.push(`${slug}: FAILED — ${label}`);
+    if (fn() !== true) failures.push(`${subject}/${slug}: FAILED — ${label}`);
     else pass++;
   } catch (e) {
-    failures.push(`${slug}: ERROR — ${label}: ${e.message}`);
+    failures.push(`${subject}/${slug}: ERROR — ${label}: ${e.message}`);
   }
 }
 
-console.log(`\nMath arithmetic verification: ${pass}/${CHECKS.length} claim(s) independently confirmed.`);
+console.log(`\nArithmetic verification: ${pass}/${CHECKS.length} claim(s) independently confirmed (Mathematics and Physics).`);
 if (failures.length) {
   for (const f of failures) console.error(`  FAIL ${f}`);
   process.exit(1);

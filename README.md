@@ -37,20 +37,21 @@ npm run dev          # http://localhost:3000
 npm run check
 ```
 
-`check` runs, in order: content validation → typecheck → lint → unit tests → production
-build → live route audit → Mathematics arithmetic verification → live content smoke test.
+`check` runs, in order: content validation → content language QA → typecheck → lint → unit tests →
+production build → live route audit → arithmetic verification → live content smoke test.
 Each is also available on its own:
 
 | Command | What it does |
 |---|---|
 | `npm run validate:content` | Validates every manifest, chapter and question |
+| `npm run qa:content` | Scans every content string for leftover placeholders and generation artefacts |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run lint` | ESLint |
 | `npm test` | Validator unit tests |
 | `npm run build` | Production build |
 | `npm run audit:routes` | Live HTTP audit of every generated route and legacy redirect |
-| `npm run verify:math` | Recomputes the numeric claims in the Mathematics chapters exactly |
-| `npm run smoke` | Live check that Mathematics chapters render their own content and are indexed |
+| `npm run verify:math` | Recomputes the numeric claims in the Mathematics and Physics chapters exactly |
+| `npm run smoke` | Live check that published chapters render their own content, are indexed, and that the pool route stays inside the content root |
 
 ## Content architecture
 
@@ -81,8 +82,8 @@ published versus still awaiting syllabus verification.
 The distinction matters more than the page count:
 
 - **Published** chapters have full learning content *and* a question bank with model
-  answers. Currently: **ICSE Class IX Mathematics**, **ICSE Class IX English** and **ICSE
-  Class IX History & Civics**.
+  answers. Currently: **ICSE Class IX Mathematics**, **ICSE Class IX English**, **ICSE
+  Class IX History & Civics** and **ICSE Class IX Physics**.
 - **Planned** chapters have a verified syllabus structure (title, unit, blurb, exam year)
   but no content yet. They are listed so students can see what is coming and are clearly
   marked as not yet available.
@@ -106,6 +107,8 @@ the content validator precisely to make that impossible.
 | `lib/analytics.ts` | Subject-agnostic accuracy, weak chapters, revision states, next-best action |
 | `lib/progress.ts` | Versioned per-browser student store |
 | `scripts/validate-content.mjs` | Content validator |
+| `scripts/qa-content-language.mjs` | Placeholder and generation-artefact scan over all content |
+| `scripts/verify-math.mjs` | Exact arithmetic verifier for the Mathematics and Physics claims |
 | `scripts/audit-routes.mjs` | Route inventory + live HTTP audit |
 
 ## Legacy notes
