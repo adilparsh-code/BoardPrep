@@ -18,6 +18,8 @@ export const KIND_LABEL: Record<ChapterKind, string> = {
   prose: "Prose",
   poetry: "Poetry",
   drama: "Drama",
+  civics: "Civics",
+  history: "History",
 };
 
 export const BASELINE_LABEL: Record<BaselineStatus, string> = {

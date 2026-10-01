@@ -61,7 +61,7 @@ export interface SyllabusBaseline {
   note: string;
 }
 
-export type SectionKind = "language" | "literature";
+export type SectionKind = "language" | "literature" | "civics" | "history";
 export type ChapterStatus = "published" | "planned";
 /** "listed" = appears in a syllabus baseline; "supplementary" = extra practice, clearly labelled. */
 export type SyllabusStatus = "listed" | "supplementary";
@@ -71,7 +71,9 @@ export type ChapterKind =
   | "comprehension"
   | "prose"
   | "poetry"
-  | "drama";
+  | "drama"
+  | "civics"
+  | "history";
 
 export interface ChapterRef {
   id: string;

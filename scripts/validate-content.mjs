@@ -27,10 +27,12 @@ const HTML_RE = /<\/?[a-zA-Z!]|javascript:/i;
 
 const QUESTION_TYPES = ["mcq", "short", "long", "extract", "analytical", "fill-blank", "transformation", "hots"];
 const DIFFICULTIES = ["easy", "medium", "hard"];
-const CHAPTER_KINDS = ["grammar", "composition", "comprehension", "prose", "poetry", "drama"];
+const CHAPTER_KINDS = ["grammar", "composition", "comprehension", "prose", "poetry", "drama", "civics", "history"];
 const KINDS_BY_SECTION = {
   language: ["grammar", "composition", "comprehension"],
   literature: ["prose", "poetry", "drama"],
+  civics: ["civics"],
+  history: ["history"],
 };
 const BLOCK_TYPES = ["paragraph", "bullets", "terms", "examples"];
 const REVIEW = ["draft", "reviewed"];
